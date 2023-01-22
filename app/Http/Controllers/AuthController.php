@@ -16,7 +16,7 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string',
+            'name' => 'required|string',  
             'email' => 'required|email||unique:users,email',
             'password' => 'required|string',
             'c_password' => 'required|same:password',
@@ -26,28 +26,35 @@ class AuthController extends Controller
         }
         $user = User::create([
             'name' => $request->name,
-            'position' => $request->position,
-            'city' => $request->city,
-            'state' => $request->state,
-            'address' => $request->address,
-            'postal_code' => $request->postal_code,
             'country_id' => $request->country_id,
-            'company_id' => $request->company_id,
-            'phone' => $request->phone,
-            'website' => $request->website,
+            'cellphone' => $request->cellphone,
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
         $company = Company::create([
-            'name' => $request->name,
-            'user_id' => $request->user_id,
-            'supplier' => $request->supplier,
-            'buyer' => $request->buyer,
-            'business_id' => $request->business_id,
-            'year' => $request->year,
-            'annual_sale' => $request->annual_sale,
-            'certificate' => $request->certificate,
+            'name' => $request->companyName,
+            'user_id' => $user->id,
+            'country_id' => $request->country_id,
+            'supplier' => $request->supplierOf,
+            'buyer' => $request->buyerOf,
+            'services' => $request->services,
+            'business_id' => $request->businessId,
+            'year' => $request->yearEstablished,
+            'annual_sale' => $request->annualSaleId,
+            'certificate' => $request->certifications,
+            'website' => $request->website,
+            'fax' => $request->fax,
+            'landline' => $request->landline,
+            'designation' => $request->designation,
+            'contact_person' => $request->contactPerson,
+            'city' => $request->city,
+            'state' => $request->state,
+            'address' => $request->postalAddress,
+            'postal_code' => $request->postalCode,
+            'landline' => $request->landline,
         ]);
+        $user->company_id = $company->id;
+        $user->save();
         $token = $user->createToken('maApp')->plainTextToken;
         event(new Registered($user));
 
