@@ -15,6 +15,6 @@ class VerifyEmailController extends Controller
             $user->markEmailAsVerified();
             event(new Verified($user));
         }
-        return response()->json('accepted',200);
+        return redirect()->away('http://192.168.1.106:3000');
     }
 }
