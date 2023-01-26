@@ -1,11 +1,13 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\VerifyEmailController;
 use App\Models\User;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -24,7 +26,9 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 Route::post('/register', [AuthController::class, 'register']);
 // Route::post('/login', [AuthController::class, 'login'])->name('login');
-Route::get('/login', [AuthController::class, 'login']);
+Route::post('/login', [AuthController::class, 'login']);
+Route::get('/me', [UserController::class, 'me'])->middleware('auth:sanctum');
+Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 
 Route::get('/email/verify', function () {
     return response()->json('verify Email', 402);
@@ -38,4 +42,16 @@ Route::get('/email/verify', function () {
 
 // Route::get('email/verify/{id}/{hash}', 'VerificationController@verify')->name('verification.verify'); 
 
-Route::get('/email/verify/{id}/{hash}',[VerifyEmailController::class,'verify'] )->middleware(['signed'])->name('verification.verify');
+Route::get('/email/verify/{id}/{hash}', [VerifyEmailController::class, 'verify'])->middleware(['signed'])->name('verification.verify');
+
+Route::post('/forgot-password', function (Request $request) {
+    $request->validate(['email' => 'required|email']);
+ 
+    $status = Password::sendResetLink(
+        $request->only('email')
+    );
+ 
+    return $status === Password::RESET_LINK_SENT
+                ? back()->with(['status' => __($status)])
+                : back()->withErrors(['email' => __($status)]);
+})->middleware('guest')->name('password.email');
